@@ -58,4 +58,7 @@ public class VideoRepository(AppDbContext db) : BaseRepository<Video>(db), IVide
         await Set
             .Where(v => v.Id == id)
             .ExecuteUpdateAsync(s => s.SetProperty(v => v.ViewCount, v => v.ViewCount + 1), ct);
+
+    public async Task<int> CountByUserAsync(Guid userId, CancellationToken ct = default) =>
+        await Set.CountAsync(v => v.UserId == userId && v.Status == VideoStatus.Ready, ct);
 }

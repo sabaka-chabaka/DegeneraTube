@@ -11,4 +11,5 @@ public interface IVideoRepository : IRepository<Video>
     Task<PagedList<Video>> GetByUserIdAsync(Guid userId, int page, int pageSize, CancellationToken ct = default);
     Task<List<Video>> GetByStatusAsync(VideoStatus status, CancellationToken ct = default);
     Task IncrementViewCountAsync(Guid id, CancellationToken ct = default);
+    Task<int> CountByUserAsync(Guid userId, CancellationToken ct = default);
 }
