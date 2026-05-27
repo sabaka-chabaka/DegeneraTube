@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="DegeneraTube.API/DegeneraTube.API.csproj" />
   <Project Path="DegeneraTube.Application/DegeneraTube.Application.csproj" />
   <Project Path="DegeneraTube.Domain/DegeneraTube.Domain.csproj" />
   <Project Path="DegeneraTube.Infrastructure/DegeneraTube.Infrastructure.csproj" />
