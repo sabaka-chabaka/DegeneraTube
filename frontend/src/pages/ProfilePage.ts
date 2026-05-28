@@ -2,7 +2,7 @@ import { usersApi } from '../api/users';
 import { videosApi } from '../api/videos';
 import { store } from '../store';
 import { VideoCard } from '../components/VideoCard';
-import { avatarInitial, toast } from '../utils';
+import { avatarInitial, toast, avatarUrl } from '../utils';
 
 export async function ProfilePage(params: Record<string, string>): Promise<HTMLElement> {
     const el = document.createElement('div');
@@ -19,7 +19,9 @@ export async function ProfilePage(params: Record<string, string>): Promise<HTMLE
         el.innerHTML = `
       <div class="profile-header">
         <div class="profile-header-inner">
-          <div class="avatar profile-avatar">${avatarInitial(profile.username)}</div>
+          <div class="avatar profile-avatar">
+            ${profile.avatarPath ? `<img src="${avatarUrl(profile.id)}" alt="${profile.username}" />` : avatarInitial(profile.username)}
+          </div>
           <div>
             <div class="profile-name">${profile.username}</div>
             <div class="profile-meta">

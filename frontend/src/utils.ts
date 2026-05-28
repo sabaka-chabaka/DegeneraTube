@@ -34,9 +34,14 @@ export function avatarInitial(username: string): string {
     return username.charAt(0).toUpperCase();
 }
 
-export function thumbnailUrl(path: string | null): string {
-    if (!path) return '/placeholder-thumb.svg';
-    return `/api/storage/${path}`;
+export function thumbnailUrl(videoId: string | null): string {
+    if (!videoId) return '/placeholder-thumb.svg';
+    return `/api/videos/${videoId}/thumbnail`;
+}
+
+export function avatarUrl(userId: string | null): string {
+    if (!userId) return '';
+    return `/api/users/${userId}/avatar`;
 }
 
 export function toast(message: string, type: 'success' | 'error' | 'info' = 'info'): void {

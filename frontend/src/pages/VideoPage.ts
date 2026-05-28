@@ -3,7 +3,7 @@ import { commentsApi, type CommentDto } from '../api/comments';
 import { usersApi } from '../api/users';
 import { VideoPlayer } from '../components/VideoPlayer';
 import { store } from '../store';
-import { formatViews, formatRelative, avatarInitial, toast } from '../utils';
+import { formatViews, formatRelative, avatarInitial, toast, thumbnailUrl } from '../utils';
 import { navigate } from '../router';
 
 export async function VideoPage(params: Record<string, string>): Promise<HTMLElement> {
@@ -218,7 +218,7 @@ function renderSideCard(video: VideoDto): HTMLElement {
     el.className = 'sidebar-card';
     el.innerHTML = `
     <div class="sidebar-card-thumb">
-      <img src="${video.thumbnailPath ? `/api/storage/${video.thumbnailPath}` : ''}" alt="${video.title}" loading="lazy" />
+      <img src="${thumbnailUrl(video.id)}" alt="${video.title}" loading="lazy" />
     </div>
     <div class="sidebar-card-info">
       <div class="sidebar-card-title">${video.title}</div>

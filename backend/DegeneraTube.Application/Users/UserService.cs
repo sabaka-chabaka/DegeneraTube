@@ -63,6 +63,12 @@ public class UserService(
         return Result.Success(ToDto(user));
     }
 
+    public async Task<string?> GetAvatarPathAsync(Guid userId, CancellationToken ct = default)
+    {
+        var user = await users.GetByIdAsync(userId, ct);
+        return user?.AvatarPath;
+    }
+
     public async Task<Result> SubscribeAsync(Guid subscriberId, Guid channelId, CancellationToken ct = default)
     {
         if (subscriberId == channelId)

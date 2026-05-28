@@ -44,11 +44,21 @@ public static class ServiceExtensions
         services.AddScoped<ICommentService, CommentService>();
 
         var storagePath = config["Storage:BasePath"] ?? Path.Combine(Directory.GetCurrentDirectory(), "storage");
+        if (!Path.IsPathRooted(storagePath))
+        {
+            storagePath = Path.GetFullPath(storagePath);
+        }
         services.AddSingleton<IFileStorage>(_ => new LocalFileStorage(storagePath));
 
         var ffmpegPath = config["Ffmpeg:Path"] ?? "ffmpeg";
         services.AddTransient(_ => new FfmpegService(ffmpegPath));
         services.AddTransient(_ => new ThumbnailService(ffmpegPath));
+
+        services.AddCors(opt =>
+            opt.AddDefaultPolicy(p =>
+                p.WithOrigins(config["Cors:Origin"] ?? "http://localhost:5173")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()));
 
         return services;
     }

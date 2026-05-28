@@ -1,7 +1,7 @@
 import { store } from '../store';
 import { navigate } from '../router';
 import { authApi } from '../api/auth';
-import { toast } from '../utils';
+import { toast, avatarUrl } from '../utils';
 
 export function renderNavbar(): void {
     const el = document.getElementById('navbar')!;
@@ -21,7 +21,7 @@ export function renderNavbar(): void {
           <a href="#/upload" class="btn btn-ghost">+ Upload</a>
           <a href="#/profile/${user.id}" class="avatar" title="${user.username}">
             ${user.avatarPath
-        ? `<img src="/api/storage/${user.avatarPath}" alt="${user.username}" />`
+        ? `<img src="${avatarUrl(user.id)}" alt="${user.username}" />`
         : user.username.charAt(0).toUpperCase()}
           </a>
           <button class="btn-icon" id="logout-btn" title="Logout">⏻</button>

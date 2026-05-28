@@ -117,15 +117,29 @@ public class VideosController(IVideoService videos) : BaseController
     [HttpGet("{id:guid}/thumbnail")]
     public async Task<IActionResult> GetThumbnail(Guid id, CancellationToken ct)
     {
-        var path = await videos.GetThumbnailPathAsync(id, ct);
-        if (path == null)
+        try
+        {
+            var path = await videos.GetThumbnailPathAsync(id, ct);
+            if (string.IsNullOrEmpty(path))
+                return NotFound();
+
+            if (!System.IO.File.Exists(path))
+                return NotFound();
+
+            var extension = System.IO.Path.GetExtension(path).ToLowerInvariant();
+            var contentType = extension switch
+            {
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".gif" => "image/gif",
+                _ => "image/jpeg"
+            };
+
+            return PhysicalFile(path, contentType);
+        }
+        catch
+        {
             return NotFound();
-
-        path = System.IO.Path.GetFullPath(path);
-
-        if (!System.IO.File.Exists(path))
-            return NotFound();
-
-        return PhysicalFile(path, "image/jpeg");
+        }
     }
 }

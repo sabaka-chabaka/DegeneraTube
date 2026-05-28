@@ -10,12 +10,6 @@ builder.Services
     .AddSwagger()
     .AddControllers();
 
-builder.Services.AddCors(opt =>
-    opt.AddDefaultPolicy(p =>
-        p.WithOrigins(builder.Configuration["Cors:Origin"] ?? "http://localhost:5173")
-            .AllowAnyHeader()
-            .AllowAnyMethod()));
-
 var app = builder.Build();
 
 app.UseAppSwagger();

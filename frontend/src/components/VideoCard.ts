@@ -10,7 +10,7 @@ export function VideoCard(video: VideoDto): HTMLElement {
 
     el.innerHTML = `
     <div class="video-card-thumb">
-      <img src="${thumbnailUrl(video.thumbnailPath)}" alt="${video.title}" loading="lazy" />
+      <img src="${thumbnailUrl(video.id)}" alt="${video.title}" loading="lazy" />
       ${isProcessing
         ? `<div class="badge-processing" style="position:absolute;top:8px;left:8px">Processing</div>`
         : `<div class="video-card-duration">${formatDuration(video.durationSeconds)}</div>`}
