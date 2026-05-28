@@ -34,7 +34,7 @@ export function renderNavbar(): void {
 
     el.querySelector('#search-btn')?.addEventListener('click', () => {
         const q = (el.querySelector('#search-input') as HTMLInputElement).value.trim();
-        if (q) navigate(`#/?search=${encodeURIComponent(q)}`);
+        if (q) navigate(`/?search=${encodeURIComponent(q)}`);
     });
 
     el.querySelector('#search-input')?.addEventListener('keydown', (e) => {
