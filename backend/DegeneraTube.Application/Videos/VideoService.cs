@@ -4,17 +4,18 @@ using DegeneraTube.Infrastructure.Processing;
 using DegeneraTube.Infrastructure.Repositories;
 using DegeneraTube.Infrastructure.Storage;
 using DegeneraTube.Shared;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DegeneraTube.Application.Videos;
 
 public class VideoService(
-    IVideoRepository videos,
-    IFileStorage storage,
-    FfmpegService ffmpeg,
-    ThumbnailService thumbnails) : IVideoService
+    IServiceScopeFactory scopeFactory,
+    IFileStorage storage) : IVideoService
 {
     public async Task<Result<VideoDto>> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
+        using var scope = scopeFactory.CreateScope();
+        var videos = scope.ServiceProvider.GetRequiredService<IVideoRepository>();
         var video = await videos.GetByIdWithUserAsync(id, ct);
 
         if (video is null)
@@ -29,6 +30,8 @@ public class VideoService(
     public async Task<Result<VideoPagedResponse>> GetPagedAsync(
         int page, int pageSize, string? search, CancellationToken ct = default)
     {
+        using var scope = scopeFactory.CreateScope();
+        var videos = scope.ServiceProvider.GetRequiredService<IVideoRepository>();
         var paged = await videos.GetPagedAsync(page, pageSize, search, ct);
         return Result.Success(ToPagedResponse(paged));
     }
@@ -36,6 +39,8 @@ public class VideoService(
     public async Task<Result<VideoPagedResponse>> GetByUserAsync(
         Guid userId, int page, int pageSize, CancellationToken ct = default)
     {
+        using var scope = scopeFactory.CreateScope();
+        var videos = scope.ServiceProvider.GetRequiredService<IVideoRepository>();
         var paged = await videos.GetByUserIdAsync(userId, page, pageSize, ct);
         return Result.Success(ToPagedResponse(paged));
     }
@@ -56,18 +61,28 @@ public class VideoService(
             Status = VideoStatus.Processing
         };
 
-        await videos.AddAsync(video, ct);
-        await videos.SaveAsync(ct);
+        using (var scope = scopeFactory.CreateScope())
+        {
+            var videos = scope.ServiceProvider.GetRequiredService<IVideoRepository>();
+            await videos.AddAsync(video, ct);
+            await videos.SaveAsync(ct);
+        }
 
         _ = ProcessVideoAsync(video.Id, videoStream, fileName);
 
-        var saved = await videos.GetByIdWithUserAsync(video.Id, ct);
-        return Result.Success(ToDto(saved!));
+        using (var scope = scopeFactory.CreateScope())
+        {
+            var videos = scope.ServiceProvider.GetRequiredService<IVideoRepository>();
+            var saved = await videos.GetByIdWithUserAsync(video.Id, ct);
+            return Result.Success(ToDto(saved!));
+        }
     }
 
     public async Task<Result<VideoDto>> UpdateAsync(
         Guid videoId, Guid requesterId, VideoUpdateRequest request, CancellationToken ct = default)
     {
+        using var scope = scopeFactory.CreateScope();
+        var videos = scope.ServiceProvider.GetRequiredService<IVideoRepository>();
         var video = await videos.GetByIdWithUserAsync(videoId, ct);
 
         if (video is null)
@@ -88,6 +103,8 @@ public class VideoService(
 
     public async Task<Result> DeleteAsync(Guid videoId, Guid requesterId, CancellationToken ct = default)
     {
+        using var scope = scopeFactory.CreateScope();
+        var videos = scope.ServiceProvider.GetRequiredService<IVideoRepository>();
         var video = await videos.GetByIdAsync(videoId, ct);
 
         if (video is null)
@@ -109,6 +126,8 @@ public class VideoService(
 
     public async Task<Result> RegisterViewAsync(Guid videoId, CancellationToken ct = default)
     {
+        using var scope = scopeFactory.CreateScope();
+        var videos = scope.ServiceProvider.GetRequiredService<IVideoRepository>();
         await videos.IncrementViewCountAsync(videoId, ct);
         return Result.Success();
     }
@@ -123,6 +142,11 @@ public class VideoService(
             var rawFolder = Path.Combine("raw", videoId.ToString());
             var rawPath = await storage.SaveAsync(stream, rawFolder, fileName);
             var fullRawPath = storage.GetFullPath(rawPath);
+
+            using var scope = scopeFactory.CreateScope();
+            var ffmpeg = scope.ServiceProvider.GetRequiredService<FfmpegService>();
+            var thumbnails = scope.ServiceProvider.GetRequiredService<ThumbnailService>();
+            var videos = scope.ServiceProvider.GetRequiredService<IVideoRepository>();
 
             var hlsOutputDir = storage.GetFullPath(Path.Combine("hls", videoId.ToString()));
             var hlsResult = await ffmpeg.TranscodeToHlsAsync(fullRawPath, hlsOutputDir);
@@ -148,6 +172,8 @@ public class VideoService(
         }
         catch
         {
+            using var scope = scopeFactory.CreateScope();
+            var videos = scope.ServiceProvider.GetRequiredService<IVideoRepository>();
             var video = await videos.GetByIdAsync(videoId);
             if (video is null) return;
             video.Status = VideoStatus.Failed;

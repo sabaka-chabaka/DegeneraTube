@@ -47,8 +47,8 @@ public static class ServiceExtensions
         services.AddSingleton<IFileStorage>(_ => new LocalFileStorage(storagePath));
 
         var ffmpegPath = config["Ffmpeg:Path"] ?? "ffmpeg";
-        services.AddSingleton(_ => new FfmpegService(ffmpegPath));
-        services.AddSingleton(_ => new ThumbnailService(ffmpegPath));
+        services.AddTransient(_ => new FfmpegService(ffmpegPath));
+        services.AddTransient(_ => new ThumbnailService(ffmpegPath));
 
         return services;
     }
