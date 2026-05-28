@@ -2,6 +2,8 @@ bin
 obj
 .idea
 
-.DotSettings.user
+*.sln.DotSettings.user
 
 appsettings.json
+
+*.yml
