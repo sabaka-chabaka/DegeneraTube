@@ -30,11 +30,11 @@ public class VideoConfiguration : IEntityTypeConfiguration<Video>
         builder.Property(v => v.ThumbnailPath)
             .HasMaxLength(500);
 
-        builder.Property(v => v.Resolutions)
-            .HasColumnType("jsonb");
+        builder.Property(x => x.Tags)
+            .HasColumnType("text[]");
 
-        builder.Property(v => v.Tags)
-            .HasColumnType("jsonb");
+        builder.Property(x => x.Resolutions)
+            .HasColumnType("integer[]");
 
         builder.HasIndex(v => v.UserId);
         builder.HasIndex(v => v.Status);

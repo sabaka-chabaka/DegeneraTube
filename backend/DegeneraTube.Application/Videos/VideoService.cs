@@ -52,7 +52,7 @@ public class VideoService(
             UserId = userId,
             Title = request.Title,
             Description = request.Description,
-            Tags = request.Tags,
+            Tags = request.Tags ?? [],
             Status = VideoStatus.Processing
         };
 

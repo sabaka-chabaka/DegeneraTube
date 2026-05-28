@@ -15,7 +15,7 @@ public record VideoDto(
     List<string> Tags,
     DateTime CreatedAt);
 
-public record VideoUploadRequest(string Title, string? Description, List<string> Tags);
+public record VideoUploadRequest(string Title, string? Description, List<string>? Tags);
 
 public record VideoUpdateRequest(string? Title, string? Description, List<string>? Tags);
 

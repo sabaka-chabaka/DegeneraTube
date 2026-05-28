@@ -44,6 +44,7 @@ public class VideoRepository(AppDbContext db) : BaseRepository<Video>(db), IVide
         var items = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .Include(v => v.User)
             .ToListAsync(ct);
 
         return PagedList<Video>.Create(items, page, pageSize, total);

@@ -1,6 +1,6 @@
 import {store} from "../store.ts";
 
-const BASE = '/api';
+const BASE = 'http://localhost:5000/api';
 
 async function refreshAccessToken(): Promise<boolean>{
     const refresh = store.getRefreshToken();

@@ -31,11 +31,21 @@ public class VideosController(IVideoService videos) : BaseController
     [RequestSizeLimit(4L * 1024 * 1024 * 1024)]
     public async Task<IActionResult> Upload(
         [FromForm] VideoUploadRequest request,
-        IFormFile file,
+        [FromForm] IFormFile file,
         CancellationToken ct)
     {
+        if (file == null)
+            return BadRequest("File is required");
+
         await using var stream = file.OpenReadStream();
-        return FromResult(await videos.CreateAsync(CurrentUserId, request, stream, file.FileName, ct));
+
+        return FromResult(
+            await videos.CreateAsync(
+                CurrentUserId,
+                request,
+                stream,
+                file.FileName,
+                ct));
     }
 
     [Authorize]
