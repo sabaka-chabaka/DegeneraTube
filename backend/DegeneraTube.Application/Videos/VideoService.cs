@@ -132,8 +132,36 @@ public class VideoService(
         return Result.Success();
     }
 
-    public string GetStreamPath(Guid videoId) =>
-        storage.GetFullPath(Path.Combine("hls", videoId.ToString(), "master.m3u8"));
+    public async Task<string?> GetStreamPathAsync(Guid videoId, CancellationToken ct = default)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var videos = scope.ServiceProvider.GetRequiredService<IVideoRepository>();
+        var video = await videos.GetByIdAsync(videoId, ct);
+        if (video?.HlsPath == null) return null;
+        var relativePath = Path.Combine(video.HlsPath, "master.m3u8").Replace('\\', '/');
+        return storage.GetFullPath(relativePath);
+    }
+
+    public async Task<string?> GetThumbnailPathAsync(Guid videoId, CancellationToken ct = default)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var videos = scope.ServiceProvider.GetRequiredService<IVideoRepository>();
+        var video = await videos.GetByIdAsync(videoId, ct);
+        if (video?.ThumbnailPath == null) return null;
+        var relativePath = video.ThumbnailPath.Replace('\\', '/');
+        // If the file doesn't exist at the exact path, try to find any image in that directory
+        var fullPath = storage.GetFullPath(relativePath);
+        if (!File.Exists(fullPath))
+        {
+            var dir = Path.GetDirectoryName(fullPath);
+            if (Directory.Exists(dir))
+            {
+                var files = Directory.GetFiles(dir, "*.jpg");
+                if (files.Length > 0) return files[0];
+            }
+        }
+        return fullPath;
+    }
 
     private async Task ProcessVideoAsync(Guid videoId, Stream stream, string fileName)
     {
@@ -160,8 +188,8 @@ public class VideoService(
             if (video is null) return;
 
             video.Status = VideoStatus.Ready;
-            video.HlsPath = Path.Combine("hls", videoId.ToString());
-            video.ThumbnailPath = Path.GetRelativePath(storage.GetFullPath(""), thumbPath);
+            video.HlsPath = Path.Combine("hls", videoId.ToString()).Replace('\\', '/');
+            video.ThumbnailPath = Path.Combine("thumbnails", videoId.ToString(), "thumb.jpg").Replace('\\', '/');
             video.DurationSeconds = probe.DurationSeconds;
             video.Resolutions = hlsResult.Resolutions;
 

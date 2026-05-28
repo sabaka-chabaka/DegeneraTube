@@ -63,26 +63,69 @@ public class VideosController(IVideoService videos) : BaseController
     public async Task<IActionResult> RegisterView(Guid id, CancellationToken ct) =>
         FromResult(await videos.RegisterViewAsync(id, ct));
 
-    [HttpGet("{id:guid}/stream")]
-    public IActionResult Stream(Guid id)
+    [HttpGet("{id:guid}/master.m3u8")]
+    public async Task<IActionResult> Stream(Guid id, CancellationToken ct)
     {
-        var path = videos.GetStreamPath(id);
+        var path = await videos.GetStreamPathAsync(id, ct);
+
+        if (path == null)
+            return NotFound();
+
+        path = System.IO.Path.GetFullPath(path);
 
         if (!System.IO.File.Exists(path))
             return NotFound();
 
-        return PhysicalFile(path, "application/vnd.apple.mpegurl", enableRangeProcessing: true);
+        return PhysicalFile(path, "application/vnd.apple.mpegurl");
     }
 
-    [HttpGet("{id:guid}/stream/{quality}/{segment}")]
-    public IActionResult StreamSegment(Guid id, string quality, string segment)
+    [HttpGet("{id:guid}/{quality}/index.m3u8")]
+    public async Task<IActionResult> StreamPlaylist(Guid id, string quality, CancellationToken ct)
     {
-        var dir = System.IO.Path.GetDirectoryName(videos.GetStreamPath(id))!;
-        var path = System.IO.Path.Combine(dir, quality, segment);
+        var masterPath = await videos.GetStreamPathAsync(id, ct);
+        if (masterPath == null) return NotFound();
+
+        var dir = System.IO.Path.GetDirectoryName(masterPath)!;
+        var path = System.IO.Path.Combine(dir, quality, "index.m3u8");
+
+        path = System.IO.Path.GetFullPath(path);
 
         if (!System.IO.File.Exists(path))
             return NotFound();
 
-        return PhysicalFile(path, "video/mp2t", enableRangeProcessing: true);
+        return PhysicalFile(path, "application/vnd.apple.mpegurl");
+    }
+
+    [HttpGet("{id:guid}/{quality}/{segment}")]
+    public async Task<IActionResult> StreamSegment(Guid id, string quality, string segment, CancellationToken ct)
+    {
+        var masterPath = await videos.GetStreamPathAsync(id, ct);
+        if (masterPath == null) return NotFound();
+
+        var dir = System.IO.Path.GetDirectoryName(masterPath)!;
+        var path = System.IO.Path.Combine(dir, quality, segment);
+
+        path = System.IO.Path.GetFullPath(path);
+
+        if (!System.IO.File.Exists(path))
+            return NotFound();
+
+        var contentType = segment.EndsWith(".m3u8") ? "application/vnd.apple.mpegurl" : "video/mp2t";
+        return PhysicalFile(path, contentType);
+    }
+
+    [HttpGet("{id:guid}/thumbnail")]
+    public async Task<IActionResult> GetThumbnail(Guid id, CancellationToken ct)
+    {
+        var path = await videos.GetThumbnailPathAsync(id, ct);
+        if (path == null)
+            return NotFound();
+
+        path = System.IO.Path.GetFullPath(path);
+
+        if (!System.IO.File.Exists(path))
+            return NotFound();
+
+        return PhysicalFile(path, "image/jpeg");
     }
 }

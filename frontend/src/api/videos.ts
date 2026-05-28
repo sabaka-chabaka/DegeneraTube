@@ -51,5 +51,5 @@ export const videosApi = {
         request<void>(`/videos/${id}/view`, { method: 'POST' }),
 
     streamUrl: (id: string) =>
-        `http://localhost:5000/api/videos/${id}/stream`,
+        `http://localhost:5000/api/videos/${id}/master.m3u8`,
 };

@@ -11,5 +11,6 @@ public interface IVideoService
     Task<Result<VideoDto>> UpdateAsync(Guid videoId, Guid requesterId, VideoUpdateRequest request, CancellationToken ct = default);
     Task<Result> DeleteAsync(Guid videoId, Guid requesterId, CancellationToken ct = default);
     Task<Result> RegisterViewAsync(Guid videoId, CancellationToken ct = default);
-    string GetStreamPath(Guid videoId);
+    Task<string?> GetStreamPathAsync(Guid videoId, CancellationToken ct = default);
+    Task<string?> GetThumbnailPathAsync(Guid videoId, CancellationToken ct = default);
 }
