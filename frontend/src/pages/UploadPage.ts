@@ -1,5 +1,4 @@
 import { uploadVideo, LARGE_FILE_THRESHOLD } from '../api/upload';
-import { videosApi } from '../api/videos';
 import { store } from '../store';
 import { navigate } from '../router';
 import { toast } from '../utils';
@@ -14,7 +13,6 @@ export function UploadPage(): HTMLElement {
     }
 
     let selectedFile: File | null = null;
-    let customThumb: File | null = null;
 
     el.innerHTML = `
     <h1 style="font-family:var(--font-display);font-size:36px;margin-bottom:24px">
@@ -55,20 +53,7 @@ export function UploadPage(): HTMLElement {
         <input class="form-input" id="tags" type="text"
           placeholder="gaming, funny, tutorial (comma separated)" />
       </div>
-      <div class="form-group">
-        <label class="form-label">Tags</label>
-        <input class="form-input" id="tags" type="text"
-          placeholder="gaming, funny, tutorial (comma separated)" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Custom thumbnail <span style="color:var(--text-2);font-weight:400">(optional · JPEG / PNG / WebP)</span></label>
-        <div id="thumb-preview-wrap" style="display:none;margin-bottom:10px">
-          <img id="thumb-preview" style="max-width:240px;border-radius:8px;border:1px solid var(--border)" />
-        </div>
-        <input type="file" id="thumb-file" accept="image/jpeg,image/png,image/webp" style="display:none" />
-        <button class="btn btn-ghost" id="thumb-pick-btn" style="font-size:13px">🖼 Choose image</button>
-        <span id="thumb-name" style="font-size:12px;color:var(--text-2);margin-left:10px"></span>
-      </div>
+      <div id="upload-mode-hint" style="font-size:12px;color:var(--text-2);margin-bottom:16px"></div>
       <div style="display:flex;gap:12px;margin-top:24px">
         <button class="btn btn-primary" id="upload-btn"
           style="flex:1;justify-content:center;border-radius:10px;padding:12px">
@@ -128,23 +113,6 @@ export function UploadPage(): HTMLElement {
 
     el.querySelector('#cancel-btn')?.addEventListener('click', () => navigate('/'));
 
-    const thumbPickBtn   = el.querySelector('#thumb-pick-btn') as HTMLButtonElement;
-    const thumbFileInput = el.querySelector('#thumb-file') as HTMLInputElement;
-    const thumbPreviewWrap = el.querySelector('#thumb-preview-wrap') as HTMLElement;
-    const thumbPreview   = el.querySelector('#thumb-preview') as HTMLImageElement;
-    const thumbName      = el.querySelector('#thumb-name') as HTMLElement;
-
-    thumbPickBtn.addEventListener('click', () => thumbFileInput.click());
-
-    thumbFileInput.addEventListener('change', () => {
-        const file = thumbFileInput.files?.[0];
-        if (!file) return;
-        customThumb = file;
-        thumbName.textContent = file.name;
-        thumbPreviewWrap.style.display = 'block';
-        thumbPreview.src = URL.createObjectURL(file);
-    });
-
     el.querySelector('#upload-btn')?.addEventListener('click', async () => {
         if (!selectedFile) return;
 
@@ -170,14 +138,6 @@ export function UploadPage(): HTMLElement {
                     progressLabel.textContent  = label;
                 },
             });
-
-            if (customThumb) {
-                progressLabel.textContent = 'Uploading thumbnail...';
-                try {
-                    await videosApi.updateThumbnail(video.id, customThumb);
-                } catch {
-                }
-            }
 
             toast('Video uploaded! Processing in background.', 'success');
             setTimeout(() => navigate(`/video/${video.id}`), 1200);
