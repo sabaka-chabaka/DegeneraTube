@@ -231,10 +231,10 @@ public class VideoService(
         if (!video.IsOwnedBy(requesterId))
             return Result.Failure<VideoDto>("Access denied.");
 
-        while (video.Status == VideoStatus.Processing)
-            await Task.Delay(1000, ct);
+        if (video.Status == VideoStatus.Processing)
+            return Result.Failure<VideoDto>("Cannot update thumbnail while the video is processing.");
         
-        if (video.ThumbnailPath is not null)
+        if (!string.IsNullOrEmpty(video.ThumbnailPath))
             await storage.DeleteAsync(video.ThumbnailPath, ct);
 
         var ext = Path.GetExtension(fileName).ToLowerInvariant();
@@ -248,6 +248,7 @@ public class VideoService(
 
         return Result.Success(ToDto(video));
     }
+
 
     private static VideoDto ToDto(Video v) =>
         new(v.Id, v.UserId, v.User.Username, v.User.AvatarPath,
