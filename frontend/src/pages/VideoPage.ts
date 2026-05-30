@@ -54,7 +54,11 @@ function renderVideoInfo(video: VideoDto): HTMLElement {
     <div class="video-meta-row">
       <div class="video-stats">${formatViews(video.viewCount)} · ${formatRelative(video.createdAt)}</div>
       <div class="video-actions">
-        ${isOwner ? `<button class="btn btn-ghost" id="delete-btn">🗑 Delete</button>` : ''}
+        ${isOwner ? `
+          <input type="file" id="thumb-input" accept="image/jpeg,image/png,image/webp" style="display:none" />
+          <button class="btn btn-ghost" id="thumb-btn">🖼 Change thumbnail</button>
+          <button class="btn btn-ghost" id="delete-btn">🗑 Delete</button>
+        ` : ''}
         ${!isOwner && user ? `<button class="btn btn-ghost" id="sub-btn">+ Subscribe</button>` : ''}
       </div>
     </div>
@@ -65,6 +69,32 @@ function renderVideoInfo(video: VideoDto): HTMLElement {
       </div>
     </div>
     ${video.description ? `<div class="video-description">${video.description}</div>` : ''}`;
+
+    el.querySelector('#thumb-btn')?.addEventListener('click', () => {
+        (el.querySelector('#thumb-input') as HTMLInputElement).click();
+    });
+
+    el.querySelector('#thumb-input')?.addEventListener('change', async (e) => {
+        const input = e.target as HTMLInputElement;
+        const file = input.files?.[0];
+        if (!file) return;
+
+        const btn = el.querySelector('#thumb-btn') as HTMLButtonElement;
+        btn.disabled = true;
+        btn.textContent = 'Uploading...';
+
+        try {
+            await videosApi.updateThumbnail(video.id, file);
+            toast('Thumbnail updated!', 'success');
+            btn.textContent = '🖼 Change thumbnail';
+        } catch (err: any) {
+            toast(err.message ?? 'Failed to update thumbnail', 'error');
+            btn.textContent = '🖼 Change thumbnail';
+        } finally {
+            btn.disabled = false;
+            input.value = '';
+        }
+    });
 
     el.querySelector('#delete-btn')?.addEventListener('click', async () => {
         if (!confirm('Delete this video?')) return;

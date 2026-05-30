@@ -44,6 +44,12 @@ export const videosApi = {
     update: (id: string, body: { title?: string; description?: string; tags?: string[] }) =>
         put<VideoDto>(`/videos/${id}`, body),
 
+    updateThumbnail: (id: string, file: File) => {
+        const fd = new FormData();
+        fd.append('file', file);
+        return request<VideoDto>(`/videos/${id}/thumbnail`, { method: 'PUT', body: fd });
+    },
+
     delete: (id: string) =>
         del<void>(`/videos/${id}`),
 
