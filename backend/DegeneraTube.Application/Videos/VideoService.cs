@@ -231,6 +231,9 @@ public class VideoService(
         if (!video.IsOwnedBy(requesterId))
             return Result.Failure<VideoDto>("Access denied.");
 
+        while (video.Status == VideoStatus.Processing)
+            await Task.Delay(1000, ct);
+        
         if (video.ThumbnailPath is not null)
             await storage.DeleteAsync(video.ThumbnailPath, ct);
 
