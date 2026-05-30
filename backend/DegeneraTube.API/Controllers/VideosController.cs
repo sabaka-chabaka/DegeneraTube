@@ -59,6 +59,25 @@ public class VideosController(IVideoService videos) : BaseController
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct) =>
         FromResult(await videos.DeleteAsync(id, CurrentUserId, ct));
 
+    [Authorize]
+    [HttpPut("{id:guid}/thumbnail")]
+    [RequestSizeLimit(10L * 1024 * 1024)]
+    public async Task<IActionResult> UpdateThumbnail(
+        Guid id,
+        [FromForm] IFormFile file,
+        CancellationToken ct)
+    {
+        if (file == null)
+            return BadRequest("Image file is required.");
+
+        var allowed = new[] { "image/jpeg", "image/png", "image/webp" };
+        if (!allowed.Contains(file.ContentType.ToLowerInvariant()))
+            return BadRequest("Only JPEG, PNG and WebP images are allowed.");
+
+        await using var stream = file.OpenReadStream();
+        return FromResult(await videos.UpdateThumbnailAsync(id, CurrentUserId, stream, file.FileName, ct));
+    }
+
     [HttpPost("{id:guid}/view")]
     public async Task<IActionResult> RegisterView(Guid id, CancellationToken ct) =>
         FromResult(await videos.RegisterViewAsync(id, ct));

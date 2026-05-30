@@ -218,6 +218,34 @@ public class VideoService(
         }
     }
 
+    public async Task<Result<VideoDto>> UpdateThumbnailAsync(
+        Guid videoId, Guid requesterId, Stream imageStream, string fileName, CancellationToken ct = default)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var videos = scope.ServiceProvider.GetRequiredService<IVideoRepository>();
+        var video = await videos.GetByIdWithUserAsync(videoId, ct);
+
+        if (video is null)
+            return Result.Failure<VideoDto>("Video not found.");
+
+        if (!video.IsOwnedBy(requesterId))
+            return Result.Failure<VideoDto>("Access denied.");
+
+        if (video.ThumbnailPath is not null)
+            await storage.DeleteAsync(video.ThumbnailPath, ct);
+
+        var ext = Path.GetExtension(fileName).ToLowerInvariant();
+        var thumbFolder = Path.Combine("thumbnails", videoId.ToString());
+        var thumbFileName = $"thumb{ext}";
+        var savedPath = await storage.SaveAsync(imageStream, thumbFolder, thumbFileName, ct);
+
+        video.ThumbnailPath = savedPath.Replace('\\', '/');
+        videos.Update(video);
+        await videos.SaveAsync(ct);
+
+        return Result.Success(ToDto(video));
+    }
+
     private static VideoDto ToDto(Video v) =>
         new(v.Id, v.UserId, v.User.Username, v.User.AvatarPath,
             v.Title, v.Description, v.Status.ToString(),
