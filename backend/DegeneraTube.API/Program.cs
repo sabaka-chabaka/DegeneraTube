@@ -14,7 +14,14 @@ var app = builder.Build();
 
 app.UseAppSwagger();
 app.UseAppMiddleware();
+
+app.UseRouting();
+
 app.UseCors();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();

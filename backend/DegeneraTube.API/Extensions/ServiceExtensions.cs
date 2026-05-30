@@ -42,6 +42,7 @@ public static class ServiceExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IVideoService, VideoService>();
         services.AddScoped<ICommentService, CommentService>();
+        services.AddScoped<IChunkedUploadService, ChunkedUploadService>();
 
         var storagePath = config["Storage:BasePath"] ?? Path.Combine(Directory.GetCurrentDirectory(), "storage");
         if (!Path.IsPathRooted(storagePath))
@@ -58,7 +59,8 @@ public static class ServiceExtensions
             opt.AddDefaultPolicy(p =>
                 p.WithOrigins(config["Cors:Origin"] ?? "http://localhost:5173")
                     .AllowAnyHeader()
-                    .AllowAnyMethod()));
+                    .AllowAnyMethod()
+                    .AllowCredentials()));
 
         return services;
     }

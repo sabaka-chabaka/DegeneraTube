@@ -7,8 +7,6 @@ public static class AppExtensions
     public static WebApplication UseAppMiddleware(this WebApplication app)
     {
         app.UseMiddleware<ExceptionMiddleware>();
-        app.UseAuthentication();
-        app.UseAuthorization();
 
         return app;
     }
